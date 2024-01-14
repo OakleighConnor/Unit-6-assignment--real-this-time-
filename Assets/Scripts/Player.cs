@@ -4,25 +4,32 @@ using UnityEngine;
 
 public class Player : MonoBehaviour
 {
+    //Variables
+    float speed = 6f;
+    float turnSmoothTime = 0.1f;
+    float turnSmoothVelocity;
+    float gravity = -9.81f;
+    float jumpHeight = 3f;
+    float groundDistance = 0.4f;
+
+    //State Checks
+    bool jumping = false;
+    public bool isGrounded;
+    public bool move = true;
+
+    //Components
     public CharacterController controller;
     public Transform cam;
     Animator anim;
-    public float speed = 6f;
-
-    public float turnSmoothTime = 0.1f;
-    float turnSmoothVelocity;
-
-    Vector3 velocity;
-    public float gravity = -9.81f;
-
     public Transform groundCheck;
-    public float groundDistance = 0.4f;
     public LayerMask groundMask;
-    public float jumpHeight = 3f;
 
-    public bool jumping = false;
+    //Vector3
+    Vector3 velocity;
 
-    public bool isGrounded;
+    
+
+
     void Start()
     {
         anim = GameObject.Find("GFX").GetComponent<Animator>();
@@ -30,26 +37,30 @@ public class Player : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (!isGrounded && !jumping)
-        {
-            anim.SetBool("falling", true);
-        }
         isGrounded = Physics.CheckSphere(groundCheck.position, groundDistance, groundMask);
 
         AnimationReset();
-        Movement();
+        if (move)
+        {
+            Movement();
+            Attack();
+        }
         Gravity();
+        if (!isGrounded && !jumping)
+        {
+            anim.SetBool("fall", true);
+        }
     }
     void Movement()
     {
-
+        //Gravity
         if (isGrounded && velocity.y < 0)
         {
             velocity.y = -2f;
             anim.SetBool("grounded", true);
             jumping = false;
         }
-
+        velocity.y += gravity * Time.deltaTime;
 
         float horizontal = Input.GetAxisRaw("Horizontal");
         float vertical = Input.GetAxisRaw("Vertical");
@@ -62,8 +73,6 @@ public class Player : MonoBehaviour
             anim.SetBool("grounded", false);
             anim.SetBool("fall", false);
         }
-        //Gravity
-        velocity.y += gravity * Time.deltaTime;
 
         controller.Move(velocity * Time.deltaTime);
 
@@ -82,6 +91,23 @@ public class Player : MonoBehaviour
             }
         }
     }
+
+    void Attack()
+    {
+        if (isGrounded)
+        {
+            if (Input.GetMouseButton(0))
+            {
+                anim.SetTrigger("light");
+                move = false;
+            }
+            if (Input.GetMouseButton(1))
+            {
+                anim.SetTrigger("heavy");
+                move = false;
+            }
+        }
+    }
     void Gravity()
     {
         //Gravity
@@ -92,6 +118,6 @@ public class Player : MonoBehaviour
     void AnimationReset()
     {
         anim.SetBool("walk", false);
-        
+        anim.SetBool("fall", false);
     }
 }
