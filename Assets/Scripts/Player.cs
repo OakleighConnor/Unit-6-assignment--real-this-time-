@@ -4,6 +4,8 @@ using UnityEngine;
 
 public class Player : MonoBehaviour
 {
+    Enemy enemyScript;
+
     //Variables
     float speed = 6f;
     float turnSmoothTime = 0.1f;
@@ -15,7 +17,7 @@ public class Player : MonoBehaviour
     //State Checks
     bool jumping = false;
     public bool isGrounded;
-    public bool move = true;
+    public bool attacking = false;
 
     //Components
     public CharacterController controller;
@@ -27,12 +29,12 @@ public class Player : MonoBehaviour
     //Vector3
     Vector3 velocity;
 
-    
-
 
     void Start()
     {
+        enemyScript = GameObject.Find("Enemy").GetComponent<Enemy>();
         anim = GameObject.Find("GFX").GetComponent<Animator>();
+        GetComponent<BoxCollider>().enabled = false;
     }
     // Update is called once per frame
     void Update()
@@ -40,7 +42,7 @@ public class Player : MonoBehaviour
         isGrounded = Physics.CheckSphere(groundCheck.position, groundDistance, groundMask);
 
         AnimationReset();
-        if (move)
+        if (!attacking)
         {
             Movement();
             Attack();
@@ -98,13 +100,16 @@ public class Player : MonoBehaviour
         {
             if (Input.GetMouseButton(0))
             {
+
+                GetComponent<BoxCollider>().enabled = true;
                 anim.SetTrigger("light");
-                move = false;
+                attacking = true;
             }
             if (Input.GetMouseButton(1))
             {
+                GetComponent<BoxCollider>().enabled = true;
                 anim.SetTrigger("heavy");
-                move = false;
+                attacking = true;
             }
         }
     }
@@ -119,5 +124,12 @@ public class Player : MonoBehaviour
     {
         anim.SetBool("walk", false);
         anim.SetBool("fall", false);
+    }
+   void OnTriggerStay(Collider other)
+   {
+        if (attacking)
+        {
+            enemyScript.TakeDamage();
+        }
     }
 }
