@@ -32,6 +32,9 @@ public class Player : MonoBehaviour
 
     void Start()
     {
+        Cursor.visible = false;
+        Cursor.lockState = CursorLockMode.Locked;
+
         enemyScript = GameObject.Find("Enemy").GetComponent<Enemy>();
         anim = GameObject.Find("GFX").GetComponent<Animator>();
         GetComponent<BoxCollider>().enabled = false;
@@ -127,9 +130,12 @@ public class Player : MonoBehaviour
     }
    void OnTriggerStay(Collider other)
    {
-        if (attacking)
+        if (other.gameObject.CompareTag("Enemy"))
         {
-            enemyScript.TakeDamage();
+            if (attacking)
+            {
+                Destroy(other.gameObject);
+            }
         }
     }
 }

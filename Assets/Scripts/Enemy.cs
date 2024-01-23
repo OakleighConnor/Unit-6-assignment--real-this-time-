@@ -1,18 +1,21 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
+using Random = UnityEngine.Random;
 public class Enemy : MonoBehaviour
 {
     Player playerScript;
     Rigidbody rb;
-    Vector3 targetPos;
+    public Vector3 targetPos;
     Animator anim;
 
     public float seperation;
 
     public NavMeshAgent enemy;
     public Transform player;
+    public Transform enemyPos;
 
     public float movementRange = 5;
     public float attackRange = 1;
@@ -20,14 +23,19 @@ public class Enemy : MonoBehaviour
     public bool moving = true;
     public bool stunned = false;
 
+    public bool idleMove;
 
+    Coroutine idle;
     // Start is called before the first frame update
     void Start()
     {
+        player = GameObject.Find("Third Person Player").transform;
+        enemyPos = transform;
         playerScript = GameObject.Find("Third Person Player").GetComponent<Player>();
         targetPos = transform.position;
         rb = GetComponent<Rigidbody>();
         anim = GetComponent<Animator>();
+        idle = StartCoroutine(IdleMovement());
     }
 
     // Update is called once per frame
@@ -44,7 +52,7 @@ public class Enemy : MonoBehaviour
                 {
                     float targetPos1 = player.position.x;
                     float targetPos2 = player.position.z;
-                    targetPos = new Vector3(targetPos1 - 0.5f, -0.0200001f, targetPos2);
+                    targetPos = new Vector3(targetPos1, -0.0200001f, targetPos2);
                     enemy.SetDestination(targetPos);
                 }
                 else
@@ -52,6 +60,16 @@ public class Enemy : MonoBehaviour
                     rb.constraints = RigidbodyConstraints.FreezePositionX | RigidbodyConstraints.FreezePositionY | RigidbodyConstraints.FreezePositionZ;
                     anim.SetTrigger("attack");
                     moving = false;
+                }
+            }
+            else
+            {
+                if (Vector3.Distance(transform.position, targetPos) <= 1)
+                {
+                    if (!idleMove)
+                    {
+                        idle = StartCoroutine(IdleMovement());
+                    }
                 }
             }
         }
@@ -66,9 +84,13 @@ public class Enemy : MonoBehaviour
         }
 
     }
-    public void TakeDamage()
+
+    IEnumerator IdleMovement()
     {
-        moving = false;
-        anim.SetTrigger("death");
+        idleMove = true;
+        targetPos = new Vector3(Random.Range(enemyPos.position.x - 5, enemyPos.position.x + 5), -0.0200001f, Random.Range(enemyPos.position.x - 5, enemyPos.position.x + 5));
+        enemy.SetDestination(targetPos);
+        yield return new WaitForSeconds(Random.Range(3, 9));
+        idleMove = false;
     }
 }
